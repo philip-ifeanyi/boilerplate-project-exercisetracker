@@ -18,7 +18,7 @@ const User = mongoose.model('User', userSchema)
 
 const exerciseSchema = new mongoose.Schema({
   user_id: String,
-  date: Date,
+  date: String,
   duration: String,
   description: String,
 })
@@ -37,11 +37,42 @@ app.route('/api/users').post(async(req, res) => {
   res.json({_id:user._id, username: user.username})
 }).get(async (req, res) => {
   const users = await User.find()
-  console.log(users)
   if(!users) {
     res.json({msg:"no user found"})
   } else{
     res.json(users)
+  }
+})
+
+app.post('/api/users/:_id/exercises', async (req, res) => {
+  const user = req.params._id;
+  let { description, duration, date } = req.body;
+
+  if(date === '') {
+    date = new Date(Date.now())
+    date = date.toDateString()
+  }
+
+  const person = await User.findOne({_id:user})
+
+  if (person !== null) {
+    const exercise = new Exercise({
+      user_id: person._id,
+      description,
+      duration,
+      date
+    })
+  
+    await exercise.save()
+    res.json({
+      user_id: person._id,
+      username: person.username,
+      description,
+      duration,
+      date
+    })
+  } else {
+    res.json({error: "Person not found"})
   }
 })
 
