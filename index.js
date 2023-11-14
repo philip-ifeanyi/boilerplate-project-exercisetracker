@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 // Define and Mount Middlewares
 app.use(cors())
 app.use(express.static('public'))
+app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true}))
 
 // Define Schema
@@ -62,14 +63,46 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
       duration,
       date
     })
-  
+
     await exercise.save()
     res.json({
-      user_id: person._id,
+      _id: exercise.user_id,
       username: person.username,
-      description,
-      duration,
-      date
+      description: exercise.description,
+      duration: exercise.duration,
+      date: exercise.date
+    })
+  } else {
+    res.json({error: "Person not found"})
+  }
+})
+
+app.get('/api/users/:_id/logs', async (req, res) => {
+  const searchItem = req.params._id
+
+  let person = await User.findOne({_id:searchItem})
+  if (person !== null) {
+    let { to, from, limit } = req.query
+    let dateObj = {}
+    if(from) { dateObj['gte'] = new Date(from) }
+    if(to) { dateObj['lte'] = new Date(to) }
+    let filter = {user_id: person._id}
+    if(from || to) {
+      filter.date = dateObj
+    }
+
+    let exercises = await Exercise.find(filter).limit(+limit ?? 50).exec()
+    const log = exercises.map((e) => {
+      return {description:e.description, duration:e.duration, date:e.date}
+    })
+
+    let count = await Exercise.countDocuments({user_id: person._id})
+
+    res.json({
+      _id: person._id,
+      username: person.username,
+      count: count,
+      log
     })
   } else {
     res.json({error: "Person not found"})
