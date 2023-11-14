@@ -19,7 +19,7 @@ const User = mongoose.model('User', userSchema)
 
 const exerciseSchema = new mongoose.Schema({
   user_id: String,
-  date: String,
+  date: Date,
   duration: String,
   description: String,
 })
@@ -94,7 +94,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
 
     let exercises = await Exercise.find(filter).limit(+limit ?? 50).exec()
     const log = exercises.map((e) => {
-      return {description:e.description, duration:e.duration, date:e.date}
+      return {description:toString(e.description), duration:parseInt(e.duration), date:new Date(e.date)}
     })
 
     let count = await Exercise.countDocuments({user_id: person._id})
