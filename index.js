@@ -81,6 +81,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
   const searchItem = req.params._id
 
   let person = await User.findOne({_id:searchItem})
+  
   if (person !== null) {
     let { to, from, limit } = req.query
     let dateObj = {}
