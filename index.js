@@ -19,7 +19,7 @@ const User = mongoose.model('User', userSchema)
 
 const exerciseSchema = new mongoose.Schema({
   user_id: String,
-  date: String,
+  date: Date,
   duration: Number,
   description: String,
 })
@@ -49,11 +49,6 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
   const id = req.params._id;
   let { description, duration, date } = req.body;
 
-  if(date === '') {
-    date = new Date(Date.now())
-    date = date.toDateString()
-  }
-
   const user = await User.findById(id)
 
   if (user) {
@@ -61,7 +56,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
       user_id: user._id,
       description,
       duration,
-      date
+      date: date ? new Date(date) : new Date()
     })
     await exercise.save()
     res.json({
@@ -83,17 +78,19 @@ app.get('/api/users/:_id/logs', async (req, res) => {
   if (person !== null) {
     let { to, from, limit } = req.query
     let dateObj = {}
-    if(from) { dateObj['gte'] = from }
-    if(to) { dateObj['lte'] = to}
+    if(from) { dateObj['gte'] = new Date(from) }
+    if(to) { dateObj['lte'] = new Date(to)}
     let filter = {user_id: person._id}
     if(from || to) {
       filter.date = dateObj
     }
 
-    let exercises = await Exercise.find(filter).limit(+limit ?? 50).exec()
-    const log = exercises.map((e) => {
-      return {description:e.description, duration:parseInt(e.duration), date:e.date}
-    })
+    let exercises = await Exercise.find(filter).limit(+limit ?? 50)
+    const log = exercises.map((e) => ({
+      description: e.description,
+      duration: e.duration,
+      date: e.date.toDateString()
+    }))
 
     let count = await Exercise.countDocuments({user_id: person._id})
 
