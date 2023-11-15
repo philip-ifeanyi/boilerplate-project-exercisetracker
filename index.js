@@ -48,13 +48,12 @@ app.route('/api/users').post(async(req, res) => {
 app.post('/api/users/:_id/exercises', async (req, res) => {
   const user = req.params._id;
   let { description, duration, date } = req.body;
+  const person = await User.findOne({_id:user})
 
   if(date === '') {
     date = new Date(Date.now())
     date = date.toDateString()
   }
-
-  const person = await User.findOne({_id:user})
 
   if (person !== null) {
     const exercise = new Exercise({
@@ -63,7 +62,6 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
       duration,
       date
     })
-
     await exercise.save()
     res.json({
       _id: exercise.user_id,
@@ -79,7 +77,6 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 
 app.get('/api/users/:_id/logs', async (req, res) => {
   const searchItem = req.params._id
-
   let person = await User.findOne({_id:searchItem})
   
   if (person !== null) {
@@ -94,7 +91,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
 
     let exercises = await Exercise.find(filter).limit(+limit ?? 50).exec()
     const log = exercises.map((e) => {
-      return {description:toString(e.description), duration:parseInt(e.duration), date:new Date(e.date)}
+      return {description:e.description, duration:parseInt(e.duration), date:e.date.toDateString()}
     })
 
     let count = await Exercise.countDocuments({user_id: person._id})
