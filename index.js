@@ -46,7 +46,7 @@ app.route('/api/users').post(async(req, res) => {
 })
 
 app.post('/api/users/:_id/exercises', async (req, res) => {
-  const user = req.params._id;
+  const id = req.params._id;
   let { description, duration, date } = req.body;
 
   if(date === '') {
@@ -54,25 +54,25 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     date = date.toDateString()
   }
 
-  const person = await User.findOne({_id:user})
+  const user = await User.findById({id})
 
-  if (person !== null) {
+  if (user) {
     const exercise = new Exercise({
-      user_id: person._id,
+      user_id: user._id,
       description,
       duration,
       date
     })
     await exercise.save()
     res.json({
-      _id: exercise.user_id,
-      username: person.username,
+      _id: user._id,
+      username: user.username,
       description: exercise.description,
       duration: exercise.duration,
-      date: exercise.date
+      date: new Date(exercise.date).toDateString()
     })
   } else {
-    res.json({error: "Person not found"})
+    res.json({error: "User not found"})
   }
 })
 
@@ -83,8 +83,8 @@ app.get('/api/users/:_id/logs', async (req, res) => {
   if (person !== null) {
     let { to, from, limit } = req.query
     let dateObj = {}
-    if(from) { dateObj['gte'] = from.toDateString() }
-    if(to) { dateObj['lte'] = to.toDateString() }
+    if(from) { dateObj['gte'] = from }
+    if(to) { dateObj['lte'] = to}
     let filter = {user_id: person._id}
     if(from || to) {
       filter.date = dateObj
