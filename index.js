@@ -74,12 +74,12 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 app.get('/api/users/:_id/logs', async (req, res) => {
   const searchItem = req.params._id
   const person = await User.findOne({_id:searchItem})
+  let { to, from, limit } = req.query
   
   if (person !== null) {
-    let { to, from, limit } = req.query
     let dateObj = {}
-    if(from) { dateObj['gte'] = new Date(from) }
-    if(to) { dateObj['lte'] = new Date(to)}
+    if(from) { dateObj['$gte'] = new Date(from) }
+    if(to) { dateObj['$lte'] = new Date(to)}
     let filter = {user_id: person._id}
     if(from || to) {
       filter.date = dateObj
