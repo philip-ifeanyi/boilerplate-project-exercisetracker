@@ -19,8 +19,8 @@ const User = mongoose.model('User', userSchema)
 
 const exerciseSchema = new mongoose.Schema({
   user_id: String,
-  date: Date,
-  duration: String,
+  date: String,
+  duration: Number,
   description: String,
 })
 const Exercise = mongoose.model('Exercise', exerciseSchema)
@@ -48,13 +48,14 @@ app.route('/api/users').post(async(req, res) => {
 app.post('/api/users/:_id/exercises', async (req, res) => {
   const user = req.params._id;
   let { description, duration, date } = req.body;
-  const person = await User.findOne({_id:user})
 
   if(date === '') {
     date = new Date(Date.now())
     date = date.toDateString()
   }
 
+  const person = await User.findOne({_id:user})
+  
   if (person !== null) {
     const exercise = new Exercise({
       user_id: person._id,
@@ -82,8 +83,8 @@ app.get('/api/users/:_id/logs', async (req, res) => {
   if (person !== null) {
     let { to, from, limit } = req.query
     let dateObj = {}
-    if(from) { dateObj['gte'] = new Date(from) }
-    if(to) { dateObj['lte'] = new Date(to) }
+    if(from) { dateObj['gte'] = from.toDateString() }
+    if(to) { dateObj['lte'] = to.toDateString() }
     let filter = {user_id: person._id}
     if(from || to) {
       filter.date = dateObj
