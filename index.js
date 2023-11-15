@@ -31,13 +31,13 @@ app.get('/', (req, res) => {
 });
 
 app.route('/api/users').post(async(req, res) => {
-  const user = new User({
+  const userObj = new User({
     username: req.body.username
   })
-  await user.save()
-  res.json({_id:user._id, username: user.username})
+  const user = await userObj.save()
+  res.json(user)
 }).get(async (req, res) => {
-  const users = await User.find()
+  const users = await User.find({}).select("_id username")
   if(!users) {
     res.json({msg:"no user found"})
   } else{
@@ -47,24 +47,24 @@ app.route('/api/users').post(async(req, res) => {
 
 app.post('/api/users/:_id/exercises', async (req, res) => {
   const id = req.params._id;
-  let { description, duration, date } = req.body;
+  const { description, duration, date } = req.body;
 
   const user = await User.findById(id)
 
   if (user) {
-    const exercise = new Exercise({
+    const exerciseObj = new Exercise({
       user_id: user._id,
       description,
       duration,
       date: date ? new Date(date) : new Date()
     })
-    await exercise.save()
+    const exercise = await exerciseObj.save()
     res.json({
       _id: user._id,
       username: user.username,
       description: exercise.description,
       duration: exercise.duration,
-      date: exercise.date
+      date: new Date(exercise.date).toDateString()
     })
   } else {
     res.json({error: "User not found"})
@@ -73,7 +73,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 
 app.get('/api/users/:_id/logs', async (req, res) => {
   const searchItem = req.params._id
-  let person = await User.findOne({_id:searchItem})
+  const person = await User.findOne({_id:searchItem})
   
   if (person !== null) {
     let { to, from, limit } = req.query
@@ -85,14 +85,14 @@ app.get('/api/users/:_id/logs', async (req, res) => {
       filter.date = dateObj
     }
 
-    let exercises = await Exercise.find(filter).limit(+limit ?? 50)
+    const exercises = await Exercise.find(filter).limit(+limit ?? 50)
     const log = exercises.map((e) => ({
       description: e.description,
       duration: e.duration,
       date: e.date.toDateString()
     }))
 
-    let count = await Exercise.countDocuments({user_id: person._id})
+    const count = await Exercise.countDocuments({user_id: person._id})
 
     res.json({
       _id: person._id,
