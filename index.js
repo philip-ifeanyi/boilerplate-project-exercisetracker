@@ -54,7 +54,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     date = date.toDateString()
   }
 
-  const user = await User.findById({id})
+  const user = await User.findById(id)
 
   if (user) {
     const exercise = new Exercise({
