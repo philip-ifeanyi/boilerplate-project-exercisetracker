@@ -55,7 +55,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
   }
 
   const person = await User.findOne({_id:user})
-  
+
   if (person !== null) {
     const exercise = new Exercise({
       user_id: person._id,
@@ -92,7 +92,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
 
     let exercises = await Exercise.find(filter).limit(+limit ?? 50).exec()
     const log = exercises.map((e) => {
-      return {description:e.description, duration:parseInt(e.duration), date:e.date.toDateString()}
+      return {description:e.description, duration:parseInt(e.duration), date:e.date}
     })
 
     let count = await Exercise.countDocuments({user_id: person._id})
